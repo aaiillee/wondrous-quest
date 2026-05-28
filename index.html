@@ -80,7 +80,7 @@
             width: 42px;  /* Adjust width to fit your image */
             height: 60px; /* Adjust height to fit your image */
             position: absolute;
-            bottom: 2px; 
+            bottom: 4px; 
             right: 15%; 
             z-index: 10;
             
@@ -198,7 +198,7 @@
         <div id="overlay">
             <canvas id="fireworks-canvas"></canvas>
             <h1 id="message"></h1>
-            <button id="retry-btn" onclick="resetGame()">Retry</button>
+            <button id="retry-btn">Retry</button>
         </div>
     </div>
 
@@ -238,11 +238,27 @@
         document.addEventListener("keydown", (e) => { 
             if (e.code === "Space" || e.code === "ArrowUp") jump(); 
         });
-        gameContainer.addEventListener("mousedown", jump);
-        gameContainer.addEventListener("touchstart", (e) => {
-            e.preventDefault(); 
-            jump();
-        });
+
+        // --- JUMP LISTENERS ---
+	gameContainer.addEventListener("mousedown", jump);
+	gameContainer.addEventListener("touchstart", (e) => {
+    	e.preventDefault(); // Prevents double-firing on mobile
+    	jump();
+	}, { passive: false });
+
+	// --- BUTTON LISTENERS (MOBILE FIX) ---
+	// Handle desktop clicks
+	retryBtn.addEventListener("mousedown", (e) => {
+ 	   e.stopPropagation(); // Stops the click from causing a jump
+  	  resetGame();
+	});
+
+	// Handle mobile taps
+	retryBtn.addEventListener("touchstart", (e) => {
+  	  e.stopPropagation(); // Stops the tap from causing a jump
+   	 e.preventDefault();  // Stops mobile browsers from generating a "ghost click"
+   	 resetGame();
+	}, { passive: false });
 
         // Unpredictable Carrot Spawner
         function spawnCarrot() {
@@ -391,10 +407,10 @@
             }
         }
 
-        function resetGame() {
-            carrot.style.animationPlayState = 'running';
-            startGame();
-        }
+     	  function resetGame() {
+    	carrot.style.animationPlayState = 'running';
+    	startGame();
+	}
 
         // Initialize the game on load
         startGame();
