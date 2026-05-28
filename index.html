@@ -20,11 +20,14 @@
             text-align: center;
         }
 
-        h2 {
-            color: #fbdc00;
-            text-shadow: 2px 2px 0px #8a2be2;
-            margin-bottom: 5px;
-        }
+	#game-logo {
+ 	   width: 90vw;          /* Responsive width */
+ 	   max-width: 600px;     /* Prevents it from getting too massive on desktop */
+ 	   height: auto;         /* Keeps the original proportions */
+  	   max-height: 120px;     /* Keeps it from pushing the game down too far */
+  	   margin-bottom: 10px; 
+ 	   object-fit: contain;
+	}
 
         p {
             margin-top: 0;
@@ -74,8 +77,8 @@
          * ==========================================
          */
         #character {
-            width: 70px;  /* Adjust width to fit your image */
-            height: 70px; /* Adjust height to fit your image */
+            width: 60px;  /* Adjust width to fit your image */
+            height: 60px; /* Adjust height to fit your image */
             position: absolute;
             bottom: -1px; 
             right: 15%; 
@@ -180,7 +183,7 @@
 </head>
 <body>
 
-    <h2>WONDROUS QUEST</h2>
+    <img id="game-logo" src="wondrous-quest-logo.png" alt="Wondrous Quest Logo">
     <p>Tap, Click, or Press SPACE to jump. Survive for 30 seconds!</p>
 
     <div id="game-container">
