@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wondrous Quest - Responsive Mini Game</title>
+    <title>Wondrous Quest</title>
     <style>
         /* Responsive Retro RPG / Arcade Styling */
         body {
@@ -61,25 +61,35 @@
         #ui-layer {
             position: absolute;
             top: 15px;
-            left: 20px; /* Moved timer to the left */
+            left: 20px; 
             font-weight: bold;
             font-size: clamp(16px, 4vw, 20px);
             z-index: 20;
             color: #fff;
         }
 
-        /* Character on the RIGHT, facing LEFT */
+        /* 
+         * ==========================================
+         * CUSTOM CHARACTER DESIGN SETTINGS 
+         * ==========================================
+         */
         #character {
-            width: 40px;
-            height: 40px;
+            width: 70px;  /* Adjust width to fit your image */
+            height: 70px; /* Adjust height to fit your image */
             position: absolute;
-            bottom: 4px; 
-            right: 15%; /* Positioned on the right side */
-            font-size: clamp(30px, 8vw, 40px);
-            line-height: 40px;
-            text-align: center;
+            bottom: -1px; 
+            right: 15%; 
             z-index: 10;
-            transform: scaleX(-1); /* Flips the runner emoji to face left */
+            
+            /* INSERT YOUR IMAGE URL HERE */
+            background-image: url('game-cat.png'); /* Placeholder knight image */
+            
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            
+            /* Remove this transform line if your custom image is ALREADY facing left 
+            transform: scaleX(-1); */
         }
 
         /* Responsive Jump Animation */
@@ -89,7 +99,7 @@
 
         @keyframes jumpAnim {
             0% { bottom: 4px; }
-            45% { bottom: 50%; } /* Jumps halfway up the container */
+            45% { bottom: 50%; } 
             55% { bottom: 50%; }
             100% { bottom: 4px; }
         }
@@ -98,13 +108,12 @@
         #carrot {
             position: absolute;
             bottom: 4px;
-            left: -80px; /* Start off-screen to the left */
+            left: -80px; 
             line-height: 1;
             z-index: 5;
-            display: none; /* Hidden until spawned */
+            display: none; 
         }
 
-        /* Move Left to Right */
         .move {
             display: block !important;
             animation: moveAnim linear forwards;
@@ -131,10 +140,21 @@
             display: none;
         }
 
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Puts fireworks behind the text/button */
+            pointer-events: none;
+        }
+
         #message {
             margin: 0 0 20px 0;
             font-size: clamp(24px, 6vw, 36px);
             letter-spacing: 2px;
+            z-index: 31;
         }
 
         button {
@@ -149,6 +169,7 @@
             border-radius: 4px;
             box-shadow: 3px 3px 0px #8a2be2;
             transition: all 0.1s;
+            z-index: 31;
         }
 
         button:active {
@@ -167,10 +188,12 @@
             Time: <span id="time">30</span>s
         </div>
         
-        <div id="character">🏃‍♂️</div>
+        <!-- Character Div now uses CSS background-image -->
+        <div id="character"></div>
         <div id="carrot" class="carrot">🥕</div>
         
         <div id="overlay">
+            <canvas id="fireworks-canvas"></canvas>
             <h1 id="message"></h1>
             <button id="retry-btn" onclick="resetGame()">Retry</button>
         </div>
@@ -184,6 +207,11 @@
         const message = document.getElementById("message");
         const retryBtn = document.getElementById("retry-btn");
         const gameContainer = document.getElementById("game-container");
+        
+        // Fireworks variables
+        const canvas = document.getElementById("fireworks-canvas");
+        const ctx = canvas.getContext("2d");
+        let particles = [];
 
         let isJumping = false;
         let isGameOver = false;
@@ -204,61 +232,113 @@
             }, 550);
         }
 
-        // Input Listeners for all devices
         document.addEventListener("keydown", (e) => { 
             if (e.code === "Space" || e.code === "ArrowUp") jump(); 
         });
         gameContainer.addEventListener("mousedown", jump);
         gameContainer.addEventListener("touchstart", (e) => {
-            e.preventDefault(); // Prevent double firing on touch devices
+            e.preventDefault(); 
             jump();
         });
 
-        // Unpredictable Carrot Spawner (Requirement 2)
+        // Unpredictable Carrot Spawner
         function spawnCarrot() {
             if (isGameOver) return;
 
-            // Reset animation
             carrot.classList.remove("move");
-            void carrot.offsetWidth; // Trigger DOM reflow to restart animation
+            void carrot.offsetWidth; 
 
-            // Randomize Size (Responsive sizes based on viewport height)
-            const sizes = [4, 6, 8]; // vh units
+            // Randomize Size 
+            const sizes = [4, 6, 8]; 
             const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
             carrot.style.fontSize = randomSize + "vh";
 
-            // Randomize Speed (0.8s to 1.8s to cross screen)
+            // Randomize Speed 
             const speeds = [0.8, 1.0, 1.3, 1.5, 1.8];
             const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
             carrot.style.animationDuration = randomSpeed + "s";
 
-            // Start movement
             carrot.classList.add("move");
 
-            // When the carrot reaches the other side, spawn another one with a random delay
             carrot.onanimationend = () => {
                 carrot.classList.remove("move");
                 if (isGameOver) return;
                 
-                // Sudden appearances: random delay between 0 and 1.5 seconds
                 const randomDelay = Math.random() * 1500; 
                 spawnTimeout = setTimeout(spawnCarrot, randomDelay);
             };
         }
 
+        // --- FIREWORKS SYSTEM ---
+        function startFireworks() {
+            canvas.width = overlay.clientWidth;
+            canvas.height = overlay.clientHeight;
+            particles = [];
+
+            function renderFireworks() {
+                if (!isGameOver) return; // Stop drawing if game restarts
+                
+                // Creates a trailing fade effect
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Randomly spawn a new explosion
+                if (Math.random() < 0.1) {
+                    let x = Math.random() * canvas.width;
+                    let y = Math.random() * (canvas.height / 2); // Keep explosions in top half
+                    let hue = Math.random() * 360;
+                    
+                    // Create 30 particles per explosion
+                    for (let i = 0; i < 30; i++) {
+                        particles.push({
+                            x: x, 
+                            y: y,
+                            vx: (Math.random() - 0.5) * 8, // Velocity X
+                            vy: (Math.random() - 0.5) * 8, // Velocity Y
+                            alpha: 1, 
+                            hue: hue
+                        });
+                    }
+                }
+                
+                // Update and draw particles
+                particles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1; // Gravity pulling down
+                    p.alpha -= 0.015; // Fade out speed
+                    
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${p.alpha})`;
+                        ctx.fill();
+                    }
+                });
+                
+                requestAnimationFrame(renderFireworks);
+            }
+            renderFireworks();
+        }
+
         function startGame() {
-            // Reset state
             isGameOver = false;
             timeLeft = 30;
             timeDisplay.innerText = timeLeft;
             overlay.style.display = "none";
+            
+            // Clear canvas if restarting
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = [];
+            
             clearTimeout(spawnTimeout);
             carrot.classList.remove("move");
             
-            // Start the first spawn
             spawnCarrot();
 
-            // 60-Second Timer
+            // 30-Second Timer
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timeDisplay.innerText = timeLeft;
@@ -272,11 +352,10 @@
             collisionInterval = setInterval(() => {
                 if (isGameOver) return;
 
-                // getBoundingClientRect gives exact screen coordinates, working perfectly on any resize
                 let charRect = character.getBoundingClientRect();
                 let carrotRect = carrot.getBoundingClientRect();
 
-                // Hitbox detection with slight padding for fairness
+                // Hitbox detection
                 if (
                     charRect.left < carrotRect.right - 10 &&
                     charRect.right > carrotRect.left + 10 &&
@@ -290,21 +369,21 @@
         function endGame(isWin) {
             isGameOver = true;
             
-            // Freeze everything
             carrot.style.animationPlayState = 'paused'; 
             clearInterval(timerInterval); 
             clearInterval(collisionInterval); 
             clearTimeout(spawnTimeout);
             
-            // Show result screen
             overlay.style.display = "flex";
+            
             if (isWin) {
                 message.innerText = "Congratulation!";
-                message.style.color = "#00ff88"; // Success green
+                message.style.color = "#00ff88"; 
                 retryBtn.innerText = "Play Again";
+                startFireworks(); // Trigger fireworks ONLY on win
             } else {
                 message.innerText = "fail";
-                message.style.color = "#ff3366"; // Fail red
+                message.style.color = "#ff3366"; 
                 retryBtn.innerText = "Retry";
             }
         }
