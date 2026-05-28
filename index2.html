@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wondrous Quest</title>
+    <style>
+        /* Responsive Retro RPG / Arcade Styling */
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #2b1b3d;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+
+	#game-logo {
+ 	   width: 90vw;          /* Responsive width */
+ 	   max-width: 600px;     /* Prevents it from getting too massive on desktop */
+ 	   height: auto;         /* Keeps the original proportions */
+  	   max-height: 120px;     /* Keeps it from pushing the game down too far */
+  	   margin-bottom: 10px; 
+ 	   object-fit: contain;
+	}
+
+        p {
+            margin-top: 0;
+            font-size: clamp(12px, 3vw, 16px);
+            color: #ccc;
+            padding: 0 10px;
+        }
+
+        /* Responsive Game Container */
+       #game-container {
+   	width: 90vw;
+    	max-width: 800px;
+    	height: 30vh;
+    	min-height: 200px;
+    	border: 4px solid #fbdc00;
+    
+    	/* ADD YOUR STREET BACKGROUND IMAGE HERE */
+    	 background-image: url('bg1.jpg'); 
+    	 background-size: auto 100%; /* Keeps the height matched to the container */
+   	 background-repeat: repeat-x; /* Repeats the image endlessly to the right/left */
+   	 background-position: 0 -50px;
+    
+   	 position: relative;
+   	 overflow: hidden;
+   	 box-shadow: 0 0 15px rgba(251, 220, 0, 0.3);
+   	 border-radius: 8px;
+    
+   	 /* The scrolling animation */
+   	 animation: scrollStreet 4s linear infinite;
+}
+
+	 /* The Animation Keyframes */
+	 @keyframes scrollStreet {
+ 	 from { background-position: 0 0; }
+   	 to { background-position: 100% 0; } /* Moves the background to simulate running */
+}
+
+        /* The Ground */
+        #game-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #fbdc00;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 15px;
+            left: 20px; 
+            font-weight: bold;
+            font-size: clamp(16px, 4vw, 20px);
+            z-index: 20;
+            color: #fff;
+        }
+
+        /* 
+         * ==========================================
+         * CUSTOM CHARACTER DESIGN SETTINGS 
+         * ==========================================
+         */
+        #character {
+            width: 42px;  /* Adjust width to fit your image */
+            height: 60px; /* Adjust height to fit your image */
+            position: absolute;
+            bottom: 4px; 
+            right: 15%; 
+            z-index: 10;
+            
+            /* INSERT YOUR IMAGE URL HERE */
+            background-image: url('game-cat.png'); /* Placeholder knight image */
+            
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            
+            /* Remove this transform line if your custom image is ALREADY facing left 
+            transform: scaleX(-1); */
+        }
+
+        /* Responsive Jump Animation */
+        .jump {
+            animation: jumpAnim 0.55s ease-out;
+        }
+
+        @keyframes jumpAnim {
+            0% { bottom: 4px; }
+            45% { bottom: 50%; } 
+            55% { bottom: 50%; }
+            100% { bottom: 4px; }
+        }
+
+        /* Carrot starts on the LEFT */
+        #carrot {
+            position: absolute;
+            bottom: 4px;
+            left: -80px; 
+            line-height: 1;
+            z-index: 5;
+            display: none; 
+        }
+
+        .move {
+            display: block !important;
+            animation: moveAnim linear forwards;
+        }
+
+        @keyframes moveAnim {
+            0% { left: -80px; }
+            100% { left: 100%; }
+        }
+
+        /* Game Over / Win Overlay */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            display: none;
+        }
+
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Puts fireworks behind the text/button */
+            pointer-events: none;
+        }
+
+        #message {
+            margin: 0 0 20px 0;
+            font-size: clamp(24px, 6vw, 36px);
+            letter-spacing: 2px;
+            z-index: 31;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: clamp(16px, 4vw, 20px);
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            background: #fbdc00;
+            color: #1a1025;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 3px 3px 0px #8a2be2;
+            transition: all 0.1s;
+            z-index: 31;
+        }
+
+        button:active {
+            box-shadow: 0px 0px 0px #8a2be2;
+            transform: translate(3px, 3px);
+        }
+    </style>
+</head>
+<body>
+
+    <img id="game-logo" src="wondrous-quest-logo.png" alt="Wondrous Quest Logo">
+    <p>Tap, Click, or Press SPACE to jump. Survive for 30 seconds!</p>
+
+    <div id="game-container">
+        <div id="ui-layer">
+            Time: <span id="time">30</span>s
+        </div>
+        
+        <!-- Character Div now uses CSS background-image -->
+        <div id="character"></div>
+        <div id="carrot" class="carrot">🥕</div>
+        
+        <div id="overlay">
+            <canvas id="fireworks-canvas"></canvas>
+            <h1 id="message"></h1>
+            <button id="retry-btn">Retry</button>
+        </div>
+    </div>
+
+    <script>
+        const character = document.getElementById("character");
+        const carrot = document.getElementById("carrot");
+        const timeDisplay = document.getElementById("time");
+        const overlay = document.getElementById("overlay");
+        const message = document.getElementById("message");
+        const retryBtn = document.getElementById("retry-btn");
+        const gameContainer = document.getElementById("game-container");
+        
+        // Fireworks variables
+        const canvas = document.getElementById("fireworks-canvas");
+        const ctx = canvas.getContext("2d");
+        let particles = [];
+
+        let isJumping = false;
+        let isGameOver = false;
+        let timeLeft = 30;
+        let timerInterval;
+        let collisionInterval;
+        let spawnTimeout;
+
+        // Responsive Jump Mechanics
+        function jump() {
+            if (isJumping || isGameOver) return;
+            isJumping = true;
+            character.classList.add("jump");
+            
+            setTimeout(() => {
+                character.classList.remove("jump");
+                isJumping = false;
+            }, 550);
+        }
+
+        document.addEventListener("keydown", (e) => { 
+            if (e.code === "Space" || e.code === "ArrowUp") jump(); 
+        });
+
+        // --- JUMP LISTENERS ---
+	gameContainer.addEventListener("mousedown", jump);
+	gameContainer.addEventListener("touchstart", (e) => {
+    	e.preventDefault(); // Prevents double-firing on mobile
+    	jump();
+	}, { passive: false });
+
+	// --- BUTTON LISTENERS (MOBILE FIX) ---
+	// Handle desktop clicks
+	retryBtn.addEventListener("mousedown", (e) => {
+ 	   e.stopPropagation(); // Stops the click from causing a jump
+  	  resetGame();
+	});
+
+	// Handle mobile taps
+	retryBtn.addEventListener("touchstart", (e) => {
+  	  e.stopPropagation(); // Stops the tap from causing a jump
+   	 e.preventDefault();  // Stops mobile browsers from generating a "ghost click"
+   	 resetGame();
+	}, { passive: false });
+
+        // Unpredictable Carrot Spawner
+        function spawnCarrot() {
+            if (isGameOver) return;
+
+            carrot.classList.remove("move");
+            void carrot.offsetWidth; 
+
+            // Randomize Size 
+            const sizes = [4, 6, 8]; 
+            const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+            carrot.style.fontSize = randomSize + "vh";
+
+            // Randomize Speed 
+            const speeds = [0.8, 1.0, 1.3, 1.5, 1.8];
+            const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
+            carrot.style.animationDuration = randomSpeed + "s";
+
+            carrot.classList.add("move");
+
+            carrot.onanimationend = () => {
+                carrot.classList.remove("move");
+                if (isGameOver) return;
+                
+                const randomDelay = Math.random() * 1500; 
+                spawnTimeout = setTimeout(spawnCarrot, randomDelay);
+            };
+        }
+
+        // --- FIREWORKS SYSTEM ---
+        function startFireworks() {
+            canvas.width = overlay.clientWidth;
+            canvas.height = overlay.clientHeight;
+            particles = [];
+
+            function renderFireworks() {
+                if (!isGameOver) return; // Stop drawing if game restarts
+                
+                // Creates a trailing fade effect
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Randomly spawn a new explosion
+                if (Math.random() < 0.1) {
+                    let x = Math.random() * canvas.width;
+                    let y = Math.random() * (canvas.height / 2); // Keep explosions in top half
+                    let hue = Math.random() * 360;
+                    
+                    // Create 30 particles per explosion
+                    for (let i = 0; i < 30; i++) {
+                        particles.push({
+                            x: x, 
+                            y: y,
+                            vx: (Math.random() - 0.5) * 8, // Velocity X
+                            vy: (Math.random() - 0.5) * 8, // Velocity Y
+                            alpha: 1, 
+                            hue: hue
+                        });
+                    }
+                }
+                
+                // Update and draw particles
+                particles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1; // Gravity pulling down
+                    p.alpha -= 0.015; // Fade out speed
+                    
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${p.alpha})`;
+                        ctx.fill();
+                    }
+                });
+                
+                requestAnimationFrame(renderFireworks);
+            }
+            renderFireworks();
+        }
+
+        function startGame() {
+            gameContainer.style.animationPlayState = 'running';
+            isGameOver = false;
+            timeLeft = 30;
+            timeDisplay.innerText = timeLeft;
+            overlay.style.display = "none";
+            
+            // Clear canvas if restarting
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = [];
+            
+            clearTimeout(spawnTimeout);
+            carrot.classList.remove("move");
+            
+            spawnCarrot();
+
+            // 30-Second Timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeDisplay.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame(true); // Win condition met
+                }
+            }, 1000);
+
+            // Responsive Collision Detection
+            collisionInterval = setInterval(() => {
+                if (isGameOver) return;
+
+                let charRect = character.getBoundingClientRect();
+                let carrotRect = carrot.getBoundingClientRect();
+
+                // Hitbox detection
+                if (
+                    charRect.left < carrotRect.right - 10 &&
+                    charRect.right > carrotRect.left + 10 &&
+                    charRect.bottom > carrotRect.top + 10
+                ) {
+                    endGame(false); // Hit the carrot -> Fail
+                }
+            }, 10);
+        }
+
+        function endGame(isWin) {
+            gameContainer.style.animationPlayState = 'paused';
+            isGameOver = true;
+            
+            carrot.style.animationPlayState = 'paused'; 
+            clearInterval(timerInterval); 
+            clearInterval(collisionInterval); 
+            clearTimeout(spawnTimeout);
+            
+            overlay.style.display = "flex";
+            
+            if (isWin) {
+                message.innerText = "Congratulation!";
+                message.style.color = "#00ff88"; 
+                retryBtn.innerText = "Play Again";
+                startFireworks(); // Trigger fireworks ONLY on win
+            } else {
+                message.innerText = "fail";
+                message.style.color = "#ff3366"; 
+                retryBtn.innerText = "Retry";
+            }
+        }
+
+     	  function resetGame() {
+    	carrot.style.animationPlayState = 'running';
+    	startGame();
+	}
+
+        // Initialize the game on load
+        startGame();
+    </script>
+</body>
+</html>
