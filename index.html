@@ -263,8 +263,24 @@
         gameContainer.addEventListener("mousedown", jump);
         gameContainer.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); }, { passive: false });
 
-        startBtn.addEventListener("mousedown", (e) => { e.stopPropagation(); initGame(); });
-        retryBtn.addEventListener("mousedown", (e) => { e.stopPropagation(); resetGame(); });
+		// Function to handle the start button interaction
+		const handleStart = (e) => {
+  	 	 e.stopPropagation();
+  	 	 initGame();
+		};
+
+		// Function to handle the retry button interaction
+		const handleRetry = (e) => {
+   		 e.stopPropagation();
+   		 resetGame();
+		};
+
+		// Add both click and touchstart listeners to ensure it works across all devices
+		startBtn.addEventListener("click", handleStart);
+		startBtn.addEventListener("touchstart", handleStart);
+
+		retryBtn.addEventListener("click", handleRetry);
+		retryBtn.addEventListener("touchstart", handleRetry);
 
         function spawnCarrot() {
             if (isGameOver) return;
