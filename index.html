@@ -78,16 +78,17 @@
             display: none !important;
         }
 
+        /* FIXED: Proportional spacing instead of fixed pixels */
         #logo {
-            max-width: 60%;
-            margin-bottom: 50px;
+            max-width: 55%;
+            margin-bottom: 4%;
         }
 
         /* Instructions Text */
         #instructions {
             font-size: 0.8vw;
-            line-height: 1.8;
-            margin-bottom: 30px;
+            line-height: 1.6;
+            margin-bottom: 4%;
             color: #fff;
             text-shadow: 2px 2px 0 var(--black);
         }
@@ -99,19 +100,20 @@
         h1 {
             color: var(--pink);
             text-shadow: 2px 2px 0px #fff;
-            margin-bottom: 20px;
+            margin-bottom: 4%;
             font-size: 2vw;
             position: relative;
             z-index: 2;
         }
 
+        /* FIXED: Proportional padding instead of fixed pixels */
         button {
             background-color: transparent;
             color: var(--pink);
             border: 3px solid var(--pink);
-            padding: 15px 20px;
+            padding: 2% 4%;
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.5vw;
+            font-size: 1.8vw;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
@@ -228,12 +230,23 @@
             100% { transform: scale(2.5); opacity: 0; }
         }
 
-        /* Responsive Text */
+        /* Responsive Text and proper mobile grouping */
         @media (max-width: 600px) {
             h1 { font-size: 4vw; }
-            button { font-size: 3vw; }
+            button { 
+                font-size: 3.5vw; 
+                padding: 3% 6%;
+                border-width: 2px;
+            }
             #timer { font-size: 3vw; }
-            #instructions { font-size: 2.5vw; }
+            #instructions { 
+                font-size: 3vw; 
+                margin-bottom: 5%;
+            }
+            #logo {
+                max-width: 70%;
+                margin-bottom: 5%;
+            }
         }
     </style>
 </head>
