@@ -72,23 +72,24 @@
             z-index: 10;
             background: rgba(0, 0, 0, 0.75);
             text-align: center;
+            /* NEW METHOD: Use flex gap to lock spacing instead of margins */
+            gap: 2.5vw; 
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* FIXED: Proportional spacing instead of fixed pixels */
         #logo {
             max-width: 55%;
-            margin-bottom: 4%;
+            margin: 0; /* Cleared margin */
         }
 
         /* Instructions Text */
         #instructions {
             font-size: 0.8vw;
             line-height: 1.6;
-            margin-bottom: 4%;
+            margin: 0; /* Cleared margin */
             color: #fff;
             text-shadow: 2px 2px 0 var(--black);
         }
@@ -100,13 +101,12 @@
         h1 {
             color: var(--pink);
             text-shadow: 2px 2px 0px #fff;
-            margin-bottom: 4%;
+            margin: 0; /* Cleared margin */
             font-size: 2vw;
             position: relative;
             z-index: 2;
         }
 
-        /* FIXED: Proportional padding instead of fixed pixels */
         button {
             background-color: transparent;
             color: var(--pink);
@@ -118,6 +118,7 @@
             transition: all 0.2s;
             position: relative;
             z-index: 2;
+            margin: 0; /* Cleared margin */
         }
 
         button:hover {
@@ -232,6 +233,15 @@
 
         /* Responsive Text and proper mobile grouping */
         @media (max-width: 600px) {
+            .screen {
+                gap: 4vw; /* Maintain a slightly larger gap on mobile */
+            }
+            #logo {
+                max-width: 75%;
+            }
+            #instructions { 
+                font-size: 2.8vw; 
+            }
             h1 { font-size: 4vw; }
             button { 
                 font-size: 3.5vw; 
@@ -239,14 +249,6 @@
                 border-width: 2px;
             }
             #timer { font-size: 3vw; }
-            #instructions { 
-                font-size: 3vw; 
-                margin-bottom: 5%;
-            }
-            #logo {
-                max-width: 70%;
-                margin-bottom: 5%;
-            }
         }
     </style>
 </head>
