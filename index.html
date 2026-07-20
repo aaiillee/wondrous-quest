@@ -50,7 +50,6 @@
         }
 
         .bg-animate {
-            /* FASTER: Adjusted for a running pace while keeping parallax */
             animation: scrollBg 8s linear infinite;
         }
 
@@ -81,7 +80,20 @@
 
         #logo {
             max-width: 60%;
+            margin-bottom: 50px;
+        }
+
+        /* Instructions Text */
+        #instructions {
+            font-size: 0.8vw;
+            line-height: 1.8;
             margin-bottom: 30px;
+            color: #fff;
+            text-shadow: 2px 2px 0 var(--black);
+        }
+
+        .highlight-text {
+            color: var(--pink);
         }
 
         h1 {
@@ -137,7 +149,6 @@
             position: relative;
             height: 100%;
             bottom: 0;
-            /* FASTER: Snappier jump transition to keep up with the game speed */
             transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
             z-index: 2;
         }
@@ -174,7 +185,6 @@
         }
 
         .carrot-inner {
-            /* FASTER: Tumbling matches the higher ground speed */
             animation: tumble 0.5s linear infinite;
             display: inline-block;
         }
@@ -223,6 +233,7 @@
             h1 { font-size: 4vw; }
             button { font-size: 3vw; }
             #timer { font-size: 3vw; }
+            #instructions { font-size: 2.5vw; }
         }
     </style>
 </head>
@@ -242,6 +253,10 @@
         <!-- Screens -->
         <div id="start-screen" class="screen">
             <img id="logo" src="wondrous-quest-logo.png" alt="Wondrous Quest">
+            <div id="instructions">
+                Tap, Click, or Press SPACE to jump.<br>
+                <span class="highlight-text">Survive for 30 seconds!</span>
+            </div>
             <button onclick="startGame()">Game Start</button>
         </div>
 
@@ -291,7 +306,6 @@
             cat.classList.add('jump');
             shadow.classList.add('shadow-jump');
 
-            // FASTER: Adjusted hang time and fall delays to match 0.3s CSS transition
             setTimeout(() => {
                 cat.classList.remove('jump');
                 shadow.classList.remove('shadow-jump');
@@ -317,7 +331,7 @@
                     walkCycle = walkCycle === 2 ? 3 : 2;
                     cat.src = `game-cat${walkCycle}.png`;
                 }
-            }, 100); // FASTER: Cat legs move quicker
+            }, 100); 
         }
 
         function spawnCarrot() {
@@ -334,7 +348,6 @@
             
             const randomScale = (Math.random() * 0.4 + 0.8).toFixed(2);
             
-            // FASTER: Carrots streak across the screen much quicker
             const travelTime = 1.6; 
             
             carrotWrapper.style.transform = `scale(${randomScale})`;
@@ -346,7 +359,6 @@
                 if (carrotWrapper.parentElement) carrotWrapper.remove();
             }, travelTime * 1000);
 
-            // FASTER: Shorter gaps between carrot spawns
             const nextSpawnTime = Math.random() * 800 + 900; 
             obstacleTimeout = setTimeout(spawnCarrot, nextSpawnTime);
         }
