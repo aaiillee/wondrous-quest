@@ -301,7 +301,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         const catContainer = document.getElementById('cat-container');
         const cat = document.getElementById('cat');
         const shadow = document.getElementById('shadow');
@@ -319,72 +319,64 @@
         let timerInterval;
         let walkInterval;
         let obstacleTimeout;
-        let walkCycle = 2;
+        let walkCycle = 1;
 
-	// UPDATED Jump Mechanics
+        // UPDATED Jump Mechanics
         function jump() {
-            // Allow a new jump if the cat is on the ground (isJumping is false)
-            // Or if the cat is already in the air, we don't do anything (prevent double jump)
             if (isJumping || isGameOver) return;
             
             isJumping = true;
             
-            cat.src = 'game-cat1.png';
+            cat.src = 'game-cat.png'; // The new jump image
             cat.classList.add('jump');
             shadow.classList.add('shadow-jump');
 
-            // The duration of the jump is 0.35s up + 0.3s down
             setTimeout(() => {
                 cat.classList.remove('jump');
                 shadow.classList.remove('shadow-jump');
                 
-                // Reset isJumping slightly before the transition ends 
-                // to allow the next jump to trigger instantly upon landing
                 setTimeout(() => {
                     isJumping = false;
                     if (!isGameOver) {
-                        cat.src = walkCycle === 2 ? 'game-cat2.png' : 'game-cat3.png';
+                        walkCycle = 1;
+                        cat.src = `cat-walk${walkCycle}.png`;
                     }
-                }, 150); 
+                }, 150); // Kept this at 150ms for snappy, continuous jumping
             }, 350); 
-        }
+        } // <--- THIS WAS THE MISSING BRACKET!
 
-        // UPDATED Input Listeners for "Continuous" feel
-        // Using 'keydown' and 'touchstart' allows the jump to trigger 
-        // as soon as the key/screen is pressed down.
+        // Input Listeners
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                e.preventDefault(); // Prevents page scrolling when pressing Space
+            if (!isGameOver && (e.code === 'Space' || e.code === 'ArrowUp')) {
+                e.preventDefault(); 
                 jump();
             }
         });
 
-        // For mobile/touch, ensure the jump triggers on the start of the touch
-	// FIXED Touch Listener: Ignores taps on buttons so the UI remains clickable
- 	   container.addEventListener('touchstart', (e) => {
-        // If the tap target is a button, do nothing (let the button click handle it)
-        if (e.target.tagName === 'BUTTON') return;
-        
-        if (!isGameOver) {
-            e.preventDefault();
-            jump();
-        }
+        container.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON') return; 
+            
+            if (!isGameOver) {
+                e.preventDefault();
+                jump();
+            }
+        }, {passive: false});
 
-    }, {passive: false});
         container.addEventListener('mousedown', (e) => {
-            jump();
+            if (e.target.tagName === 'BUTTON') return;
+            if (!isGameOver) jump();
         });
 
         function startWalkCycle() {
             walkInterval = setInterval(() => {
                 if (!isJumping && !isGameOver) {
-                    walkCycle = walkCycle === 2 ? 3 : 2;
-                    cat.src = `game-cat${walkCycle}.png`;
+                    walkCycle = (walkCycle % 3) + 1;
+                    cat.src = `cat-walk${walkCycle}.png`;
                 }
             }, 100); 
         }
 
-	function spawnCarrot() {
+        function spawnCarrot() {
             if (isGameOver) return;
 
             const carrotWrapper = document.createElement('div');
@@ -398,10 +390,7 @@
             
             const randomScale = (Math.random() * 0.4 + 0.8).toFixed(2);
             
-            // RANDOM SPEED: 
-            // At 30s: Speed varies between 2.2s and 1.6s
-            // At 0s: Speed varies between 1.4s and 0.8s
-            const progress = 1 - (timeLeft / 30); // 0 at start, 1 at end
+            const progress = 1 - (timeLeft / 30); 
             const minSpeed = 2.2 - (progress * 0.8);
             const maxSpeed = 1.6 - (progress * 0.8);
             
@@ -416,7 +405,6 @@
                 if (carrotWrapper.parentElement) carrotWrapper.remove();
             }, travelTime * 1000);
 
-            // Random spawn gap
             const nextSpawnTime = Math.random() * 600 + 700; 
             obstacleTimeout = setTimeout(spawnCarrot, nextSpawnTime);
         }
@@ -470,6 +458,7 @@
         }
 
         function startGame() {
+            isGameOver = false; // Important: Set this before modifying UI
             startScreen.classList.add('hidden');
             failScreen.classList.add('hidden');
             winScreen.classList.add('hidden');
@@ -478,12 +467,12 @@
             
             document.querySelectorAll('.carrot').forEach(c => c.remove());
 
-            isGameOver = false;
             timeLeft = 30;
             timerElement.innerText = `Time: ${timeLeft}`;
             
             background.classList.add('bg-animate');
-            cat.src = 'game-cat2.png';
+            walkCycle = 1; 
+            cat.src = 'cat-walk1.png'; // Fixed image source
 
             clearInterval(timerInterval);
             clearInterval(walkInterval);
@@ -499,7 +488,7 @@
         function endGame(isWin) {
             isGameOver = true;
             background.classList.remove('bg-animate');
-            cat.src = 'game-cat1.png'; 
+            cat.src = 'game-cat.png'; // Freeze on the jump/shock image when game ends
             
             clearInterval(timerInterval);
             clearInterval(walkInterval);
