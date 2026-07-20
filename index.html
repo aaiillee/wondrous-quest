@@ -313,32 +313,53 @@
         let obstacleTimeout;
         let walkCycle = 2;
 
+	// UPDATED Jump Mechanics
         function jump() {
+            // Allow a new jump if the cat is on the ground (isJumping is false)
+            // Or if the cat is already in the air, we don't do anything (prevent double jump)
             if (isJumping || isGameOver) return;
+            
             isJumping = true;
             
             cat.src = 'game-cat1.png';
             cat.classList.add('jump');
             shadow.classList.add('shadow-jump');
 
+            // The duration of the jump is 0.35s up + 0.3s down
             setTimeout(() => {
                 cat.classList.remove('jump');
                 shadow.classList.remove('shadow-jump');
                 
+                // Reset isJumping slightly before the transition ends 
+                // to allow the next jump to trigger instantly upon landing
                 setTimeout(() => {
                     isJumping = false;
                     if (!isGameOver) {
                         cat.src = walkCycle === 2 ? 'game-cat2.png' : 'game-cat3.png';
                     }
-                }, 300); 
+                }, 150); 
             }, 350); 
         }
 
+        // UPDATED Input Listeners for "Continuous" feel
+        // Using 'keydown' and 'touchstart' allows the jump to trigger 
+        // as soon as the key/screen is pressed down.
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') jump();
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault(); // Prevents page scrolling when pressing Space
+                jump();
+            }
         });
-        container.addEventListener('touchstart', jump);
-        container.addEventListener('mousedown', jump);
+
+        // For mobile/touch, ensure the jump triggers on the start of the touch
+        container.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        }, {passive: false});
+
+        container.addEventListener('mousedown', (e) => {
+            jump();
+        });
 
         function startWalkCycle() {
             walkInterval = setInterval(() => {
@@ -349,7 +370,7 @@
             }, 100); 
         }
 
-        function spawnCarrot() {
+	function spawnCarrot() {
             if (isGameOver) return;
 
             const carrotWrapper = document.createElement('div');
@@ -363,7 +384,14 @@
             
             const randomScale = (Math.random() * 0.4 + 0.8).toFixed(2);
             
-            const travelTime = 1.6; 
+            // RANDOM SPEED: 
+            // At 30s: Speed varies between 2.2s and 1.6s
+            // At 0s: Speed varies between 1.4s and 0.8s
+            const progress = 1 - (timeLeft / 30); // 0 at start, 1 at end
+            const minSpeed = 2.2 - (progress * 0.8);
+            const maxSpeed = 1.6 - (progress * 0.8);
+            
+            const travelTime = Math.random() * (minSpeed - maxSpeed) + maxSpeed;
             
             carrotWrapper.style.transform = `scale(${randomScale})`;
             carrotWrapper.style.animation = `moveRight ${travelTime}s linear`;
@@ -374,7 +402,8 @@
                 if (carrotWrapper.parentElement) carrotWrapper.remove();
             }, travelTime * 1000);
 
-            const nextSpawnTime = Math.random() * 800 + 900; 
+            // Random spawn gap
+            const nextSpawnTime = Math.random() * 600 + 700; 
             obstacleTimeout = setTimeout(spawnCarrot, nextSpawnTime);
         }
 
