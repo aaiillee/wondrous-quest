@@ -352,11 +352,17 @@
         });
 
         // For mobile/touch, ensure the jump triggers on the start of the touch
-        container.addEventListener('touchstart', (e) => {
+	// FIXED Touch Listener: Ignores taps on buttons so the UI remains clickable
+ 	   container.addEventListener('touchstart', (e) => {
+        // If the tap target is a button, do nothing (let the button click handle it)
+        if (e.target.tagName === 'BUTTON') return;
+        
+        if (!isGameOver) {
             e.preventDefault();
             jump();
-        }, {passive: false});
+        }
 
+    }, {passive: false});
         container.addEventListener('mousedown', (e) => {
             jump();
         });
